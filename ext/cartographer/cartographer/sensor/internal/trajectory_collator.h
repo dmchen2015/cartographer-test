@@ -18,11 +18,9 @@
 #define CARTOGRAPHER_SENSOR_INTERNAL_TRAJECTORY_COLLATOR_H_
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "cartographer/metrics/counter.h"
-#include "cartographer/metrics/family_factory.h"
 #include "cartographer/sensor/collator_interface.h"
 #include "cartographer/sensor/internal/ordered_multi_queue.h"
 
@@ -42,10 +40,9 @@ class TrajectoryCollator : public CollatorInterface {
   TrajectoryCollator(const TrajectoryCollator&) = delete;
   TrajectoryCollator& operator=(const TrajectoryCollator&) = delete;
 
-  void AddTrajectory(
-      int trajectory_id,
-      const absl::flat_hash_set<std::string>& expected_sensor_ids,
-      const Callback& callback) override;
+  void AddTrajectory(int trajectory_id,
+                     const std::unordered_set<std::string>& expected_sensor_ids,
+                     const Callback& callback) override;
 
   void FinishTrajectory(int trajectory_id) override;
 
@@ -53,24 +50,13 @@ class TrajectoryCollator : public CollatorInterface {
 
   void Flush() override;
 
-  absl::optional<int> GetBlockingTrajectoryId() const override;
-
-  static void RegisterMetrics(metrics::FamilyFactory* family_factory);
+  common::optional<int> GetBlockingTrajectoryId() const override;
 
  private:
-  metrics::Counter* GetOrCreateSensorMetric(const std::string& sensor_id,
-                                            int trajectory_id);
-
-  static cartographer::metrics::Family<metrics::Counter>*
-      collator_metrics_family_;
-
-  // Holds individual counters for each trajectory/sensor pair.
-  absl::flat_hash_map<std::string, metrics::Counter*> metrics_map_;
-
-  absl::flat_hash_map<int, OrderedMultiQueue> trajectory_to_queue_;
+  std::unordered_map<int, OrderedMultiQueue> trajectory_to_queue_;
 
   // Map of trajectory ID to all associated QueueKeys.
-  absl::flat_hash_map<int, std::vector<QueueKey>> trajectory_to_queue_keys_;
+  std::unordered_map<int, std::vector<QueueKey>> trajectory_to_queue_keys_;
 };
 
 }  // namespace sensor

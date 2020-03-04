@@ -51,8 +51,6 @@ class OrderedMultiQueue {
   using Callback = std::function<void(std::unique_ptr<Data>)>;
 
   OrderedMultiQueue();
-  OrderedMultiQueue(OrderedMultiQueue&& queue) = default;
-
   ~OrderedMultiQueue();
 
   // Adds a new queue with key 'queue_key' which must not already exist.

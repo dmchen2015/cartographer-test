@@ -20,7 +20,7 @@
 #include <sstream>
 #include <vector>
 
-#include "absl/memory/memory.h"
+#include "cartographer/common/make_unique.h"
 #include "glog/logging.h"
 
 namespace cartographer {

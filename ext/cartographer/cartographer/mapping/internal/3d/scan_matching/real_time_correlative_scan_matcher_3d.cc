@@ -35,7 +35,7 @@ float RealTimeCorrelativeScanMatcher3D::Match(
     const transform::Rigid3d& initial_pose_estimate,
     const sensor::PointCloud& point_cloud, const HybridGrid& hybrid_grid,
     transform::Rigid3d* pose_estimate) const {
-  CHECK(pose_estimate != nullptr);
+  CHECK_NOTNULL(pose_estimate);
   float best_score = -1.f;
   for (const transform::Rigid3f& transform : GenerateExhaustiveSearchTransforms(
            hybrid_grid.resolution(), point_cloud)) {
@@ -61,8 +61,8 @@ RealTimeCorrelativeScanMatcher3D::GenerateExhaustiveSearchTransforms(
   // We set this value to something on the order of resolution to make sure that
   // the std::acos() below is defined.
   float max_scan_range = 3.f * resolution;
-  for (const sensor::RangefinderPoint& point : point_cloud) {
-    const float range = point.position.norm();
+  for (const Eigen::Vector3f& point : point_cloud) {
+    const float range = point.norm();
     max_scan_range = std::max(range, max_scan_range);
   }
   const float kSafetyMargin = 1.f - 1e-3f;
@@ -99,9 +99,8 @@ float RealTimeCorrelativeScanMatcher3D::ScoreCandidate(
     const sensor::PointCloud& transformed_point_cloud,
     const transform::Rigid3f& transform) const {
   float score = 0.f;
-  for (const sensor::RangefinderPoint& point : transformed_point_cloud) {
-    score +=
-        hybrid_grid.GetProbability(hybrid_grid.GetCellIndex(point.position));
+  for (const Eigen::Vector3f& point : transformed_point_cloud) {
+    score += hybrid_grid.GetProbability(hybrid_grid.GetCellIndex(point));
   }
   score /= static_cast<float>(transformed_point_cloud.size());
   const float angle = transform::GetAngle(transform);

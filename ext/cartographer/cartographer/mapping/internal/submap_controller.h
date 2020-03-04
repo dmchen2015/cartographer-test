@@ -36,9 +36,7 @@ class SubmapController {
     auto submap_it = unfinished_submaps_.find(submap_id);
     if (submap_it == unfinished_submaps_.end()) {
       submap_ptr = CreateSubmap(proto);
-      if (submap_ptr) {
-        unfinished_submaps_.Insert(submap_id, submap_ptr);
-      }
+      unfinished_submaps_.Insert(submap_id, submap_ptr);
       return submap_ptr;
     }
     submap_ptr = submap_it->data;
@@ -47,7 +45,7 @@ class SubmapController {
 
     // If the submap was just finished by the recent update, remove it from
     // the list of unfinished submaps.
-    if (submap_ptr->insertion_finished()) {
+    if (submap_ptr->finished()) {
       unfinished_submaps_.Trim(submap_id);
     } else {
       // If the submap is unfinished set the 'num_range_data' to 0 since we
@@ -62,8 +60,6 @@ class SubmapController {
 
   mapping::MapById<mapping::SubmapId, std::shared_ptr<SubmapType>>
       unfinished_submaps_;
-
-  ValueConversionTables conversion_tables_;
 };
 
 template <>

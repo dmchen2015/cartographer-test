@@ -31,8 +31,7 @@ class OutlierRemovingPointsProcessor : public PointsProcessor {
   constexpr static const char* kConfigurationFileActionName =
       "voxel_filter_and_remove_moving_objects";
 
-  OutlierRemovingPointsProcessor(double voxel_size, double miss_per_hit_limit,
-                                 PointsProcessor* next);
+  OutlierRemovingPointsProcessor(double voxel_size, PointsProcessor* next);
 
   static std::unique_ptr<OutlierRemovingPointsProcessor> FromDictionary(
       common::LuaParameterDictionary* dictionary, PointsProcessor* next);
@@ -77,7 +76,6 @@ class OutlierRemovingPointsProcessor : public PointsProcessor {
   void ProcessInPhaseThree(std::unique_ptr<PointsBatch> batch);
 
   const double voxel_size_;
-  const double miss_per_hit_limit_;
   PointsProcessor* const next_;
   State state_;
   mapping::HybridGridBase<VoxelData> voxels_;

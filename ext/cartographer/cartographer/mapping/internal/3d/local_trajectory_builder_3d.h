@@ -77,8 +77,7 @@ class LocalTrajectoryBuilder3D {
  private:
   std::unique_ptr<MatchingResult> AddAccumulatedRangeData(
       common::Time time,
-      const sensor::RangeData& filtered_range_data_in_tracking,
-      const absl::optional<common::Duration>& sensor_duration);
+      const sensor::RangeData& filtered_range_data_in_tracking);
 
   std::unique_ptr<InsertionResult> InsertIntoSubmap(
       common::Time time, const sensor::RangeData& filtered_range_data_in_local,
@@ -87,13 +86,6 @@ class LocalTrajectoryBuilder3D {
       const sensor::PointCloud& low_resolution_point_cloud_in_tracking,
       const transform::Rigid3d& pose_estimate,
       const Eigen::Quaterniond& gravity_alignment);
-
-  // Scan matches using the two point clouds and returns the observed pose, or
-  // nullptr on failure.
-  std::unique_ptr<transform::Rigid3d> ScanMatch(
-      const transform::Rigid3d& pose_prediction,
-      const sensor::PointCloud& low_resolution_point_cloud_in_tracking,
-      const sensor::PointCloud& high_resolution_point_cloud_in_tracking);
 
   const mapping::proto::LocalTrajectoryBuilderOptions3D options_;
   mapping::ActiveSubmaps3D active_submaps_;
@@ -107,13 +99,9 @@ class LocalTrajectoryBuilder3D {
 
   int num_accumulated_ = 0;
   sensor::RangeData accumulated_range_data_;
-  absl::optional<std::chrono::steady_clock::time_point> last_wall_time_;
-
-  absl::optional<double> last_thread_cpu_time_seconds_;
+  std::chrono::steady_clock::time_point accumulation_started_;
 
   RangeDataCollator range_data_collator_;
-
-  absl::optional<common::Time> last_sensor_time_;
 };
 
 }  // namespace mapping

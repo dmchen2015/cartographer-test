@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.2)
+set(CMAKE_CXX_STANDARD 11)
+
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
+file(GLOB_RECURSE LUA_SRCS ${CMAKE_CURRENT_LIST_DIR}/src/*.c)
+add_library(lua STATIC ${LUA_SRCS})
+set(LUA_DEFINITIONS LUA_USE_POSIX)
+if (EMSCRIPTEN)
+	unset(LUA_DEFINITIONS)
+endif ()
+target_compile_definitions(lua PUBLIC ${LUA_DEFINITIONS})

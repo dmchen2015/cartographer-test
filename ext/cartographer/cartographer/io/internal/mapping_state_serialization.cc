@@ -15,7 +15,6 @@
  */
 
 #include "cartographer/io/internal/mapping_state_serialization.h"
-
 #include "cartographer/mapping/proto/serialization.pb.h"
 #include "cartographer/transform/transform.h"
 
@@ -32,27 +31,14 @@ using mapping::proto::SerializedData;
 mapping::proto::AllTrajectoryBuilderOptions
 CreateAllTrajectoryBuilderOptionsProto(
     const std::vector<mapping::proto::TrajectoryBuilderOptionsWithSensorIds>&
-        all_options_with_sensor_ids,
-    const std::vector<int>& trajectory_ids_to_serialize) {
+        all_options_with_sensor_ids) {
   mapping::proto::AllTrajectoryBuilderOptions all_options_proto;
-  for (auto id : trajectory_ids_to_serialize) {
-    *all_options_proto.add_options_with_sensor_ids() =
-        all_options_with_sensor_ids[id];
+  for (const auto& options_with_sensor_ids : all_options_with_sensor_ids) {
+    *all_options_proto.add_options_with_sensor_ids() = options_with_sensor_ids;
   }
+  CHECK_EQ(all_options_with_sensor_ids.size(),
+           all_options_proto.options_with_sensor_ids_size());
   return all_options_proto;
-}
-
-// Will return all trajectory ids, that have `state != DELETED`.
-std::vector<int> GetValidTrajectoryIds(
-    const std::map<int, PoseGraphInterface::TrajectoryState>&
-        trajectory_states) {
-  std::vector<int> valid_trajectories;
-  for (const auto& t : trajectory_states) {
-    if (t.second != PoseGraphInterface::TrajectoryState::DELETED) {
-      valid_trajectories.push_back(t.first);
-    }
-  }
-  return valid_trajectories;
 }
 
 mapping::proto::SerializationHeader CreateHeader() {
@@ -61,41 +47,34 @@ mapping::proto::SerializationHeader CreateHeader() {
   return header;
 }
 
-SerializedData SerializePoseGraph(const mapping::PoseGraph& pose_graph,
-                                  bool include_unfinished_submaps) {
+SerializedData SerializePoseGraph(const mapping::PoseGraph& pose_graph) {
   SerializedData proto;
-  *proto.mutable_pose_graph() = pose_graph.ToProto(include_unfinished_submaps);
+  *proto.mutable_pose_graph() = pose_graph.ToProto();
   return proto;
 }
 
-SerializedData SerializeTrajectoryBuilderOptions(
+SerializedData SerializeAllTrajectoryBuilderOptions(
     const std::vector<mapping::proto::TrajectoryBuilderOptionsWithSensorIds>&
-        trajectory_builder_options,
-    const std::vector<int>& trajectory_ids_to_serialize) {
+        trajectory_builder_options) {
   SerializedData proto;
   *proto.mutable_all_trajectory_builder_options() =
-      CreateAllTrajectoryBuilderOptionsProto(trajectory_builder_options,
-                                             trajectory_ids_to_serialize);
+      CreateAllTrajectoryBuilderOptionsProto(trajectory_builder_options);
   return proto;
 }
 
 void SerializeSubmaps(
     const MapById<SubmapId, PoseGraphInterface::SubmapData>& submap_data,
-    bool include_unfinished_submaps, ProtoStreamWriterInterface* const writer) {
+    ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   // Next serialize all submaps.
   for (const auto& submap_id_data : submap_data) {
-    if (!include_unfinished_submaps &&
-        !submap_id_data.data.submap->insertion_finished()) {
-      continue;
-    }
-    SerializedData proto;
     auto* const submap_proto = proto.mutable_submap();
-    *submap_proto = submap_id_data.data.submap->ToProto(
-        /*include_probability_grid_data=*/true);
     submap_proto->mutable_submap_id()->set_trajectory_id(
         submap_id_data.id.trajectory_id);
     submap_proto->mutable_submap_id()->set_submap_index(
         submap_id_data.id.submap_index);
+    submap_id_data.data.submap->ToProto(submap_proto,
+                                        /*include_probability_grid_data=*/true);
     writer->WriteProto(proto);
   }
 }
@@ -103,8 +82,8 @@ void SerializeSubmaps(
 void SerializeTrajectoryNodes(
     const MapById<NodeId, TrajectoryNode>& trajectory_nodes,
     ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const auto& node_id_data : trajectory_nodes) {
-    SerializedData proto;
     auto* const node_proto = proto.mutable_node();
     node_proto->mutable_node_id()->set_trajectory_id(
         node_id_data.id.trajectory_id);
@@ -119,8 +98,8 @@ void SerializeTrajectoryData(
     const std::map<int, PoseGraphInterface::TrajectoryData>&
         all_trajectory_data,
     ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const auto& trajectory_data : all_trajectory_data) {
-    SerializedData proto;
     auto* const trajectory_data_proto = proto.mutable_trajectory_data();
     trajectory_data_proto->set_trajectory_id(trajectory_data.first);
     trajectory_data_proto->set_gravity_constant(
@@ -141,9 +120,9 @@ void SerializeTrajectoryData(
 
 void SerializeImuData(const sensor::MapByTime<sensor::ImuData>& all_imu_data,
                       ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const int trajectory_id : all_imu_data.trajectory_ids()) {
     for (const auto& imu_data : all_imu_data.trajectory(trajectory_id)) {
-      SerializedData proto;
       auto* const imu_data_proto = proto.mutable_imu_data();
       imu_data_proto->set_trajectory_id(trajectory_id);
       *imu_data_proto->mutable_imu_data() = sensor::ToProto(imu_data);
@@ -155,10 +134,10 @@ void SerializeImuData(const sensor::MapByTime<sensor::ImuData>& all_imu_data,
 void SerializeOdometryData(
     const sensor::MapByTime<sensor::OdometryData>& all_odometry_data,
     ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const int trajectory_id : all_odometry_data.trajectory_ids()) {
     for (const auto& odometry_data :
          all_odometry_data.trajectory(trajectory_id)) {
-      SerializedData proto;
       auto* const odometry_data_proto = proto.mutable_odometry_data();
       odometry_data_proto->set_trajectory_id(trajectory_id);
       *odometry_data_proto->mutable_odometry_data() =
@@ -172,10 +151,10 @@ void SerializeFixedFramePoseData(
     const sensor::MapByTime<sensor::FixedFramePoseData>&
         all_fixed_frame_pose_data,
     ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const int trajectory_id : all_fixed_frame_pose_data.trajectory_ids()) {
     for (const auto& fixed_frame_pose_data :
          all_fixed_frame_pose_data.trajectory(trajectory_id)) {
-      SerializedData proto;
       auto* const fixed_frame_pose_data_proto =
           proto.mutable_fixed_frame_pose_data();
       fixed_frame_pose_data_proto->set_trajectory_id(trajectory_id);
@@ -190,9 +169,9 @@ void SerializeLandmarkNodes(
     const std::map<std::string, PoseGraphInterface::LandmarkNode>&
         all_landmark_nodes,
     ProtoStreamWriterInterface* const writer) {
+  SerializedData proto;
   for (const auto& node : all_landmark_nodes) {
     for (const auto& observation : node.second.landmark_observations) {
-      SerializedData proto;
       auto* landmark_data_proto = proto.mutable_landmark_data();
       landmark_data_proto->set_trajectory_id(observation.trajectory_id);
       landmark_data_proto->mutable_landmark_data()->set_timestamp(
@@ -215,16 +194,13 @@ void WritePbStream(
     const mapping::PoseGraph& pose_graph,
     const std::vector<mapping::proto::TrajectoryBuilderOptionsWithSensorIds>&
         trajectory_builder_options,
-    ProtoStreamWriterInterface* const writer, bool include_unfinished_submaps) {
+    ProtoStreamWriterInterface* const writer) {
   writer->WriteProto(CreateHeader());
+  writer->WriteProto(SerializePoseGraph(pose_graph));
   writer->WriteProto(
-      SerializePoseGraph(pose_graph, include_unfinished_submaps));
-  writer->WriteProto(SerializeTrajectoryBuilderOptions(
-      trajectory_builder_options,
-      GetValidTrajectoryIds(pose_graph.GetTrajectoryStates())));
+      SerializeAllTrajectoryBuilderOptions(trajectory_builder_options));
 
-  SerializeSubmaps(pose_graph.GetAllSubmapData(), include_unfinished_submaps,
-                   writer);
+  SerializeSubmaps(pose_graph.GetAllSubmapData(), writer);
   SerializeTrajectoryNodes(pose_graph.GetTrajectoryNodes(), writer);
   SerializeTrajectoryData(pose_graph.GetTrajectoryData(), writer);
   SerializeImuData(pose_graph.GetImuData(), writer);

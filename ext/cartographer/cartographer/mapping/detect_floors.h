@@ -17,8 +17,9 @@
 #ifndef CARTOGRAPHER_MAPPING_DETECT_FLOORS_H_
 #define CARTOGRAPHER_MAPPING_DETECT_FLOORS_H_
 
-#include "cartographer/common/time.h"
 #include "cartographer/mapping/proto/trajectory.pb.h"
+
+#include "cartographer/common/time.h"
 
 namespace cartographer {
 namespace mapping {

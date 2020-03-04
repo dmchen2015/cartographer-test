@@ -15,7 +15,6 @@
  */
 
 #include "cartographer/mapping/internal/3d/local_slam_result_3d.h"
-
 #include "cartographer/mapping/internal/3d/pose_graph_3d.h"
 
 namespace cartographer {
@@ -24,7 +23,7 @@ namespace mapping {
 void LocalSlamResult3D::AddToTrajectoryBuilder(
     TrajectoryBuilderInterface* const trajectory_builder) {
   trajectory_builder->AddLocalSlamResultData(
-      absl::make_unique<LocalSlamResult3D>(*this));
+      common::make_unique<LocalSlamResult3D>(*this));
 }
 
 void LocalSlamResult3D::AddToPoseGraph(int trajectory_id,

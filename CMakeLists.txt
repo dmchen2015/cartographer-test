@@ -18,9 +18,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 # build executable
-add_executable(cartographer_autogenerate_ground_truth main/autogenerate_ground_truth_main.cc)
+add_executable(cartographer_autogenerate_ground_truth ext/cartographer/cartographer/ground_truth/autogenerate_ground_truth_main.cc)
 target_link_libraries(cartographer_autogenerate_ground_truth ${EXT_DEPS})
-
-#google_binary(cartographer_compute_relations_metrics SRCS main/compute_relations_metrics_main.cc)
-#google_binary(cartographer_pbstream SRCS main/pbstream_main.cc)
-#google_binary(cartographer_print_configuration SRCS main/print_configuration_main.cc)

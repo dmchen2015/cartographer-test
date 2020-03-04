@@ -53,16 +53,17 @@ inline uint8 ProbabilityToLogOddsInteger(const float probability) {
 }
 
 // An individual submap, which has a 'local_pose' in the local map frame, keeps
-// track of how many range data were inserted into it, and sets
-// 'insertion_finished' when the map no longer changes and is ready for loop
-// closing.
+// track of how many range data were inserted into it, and sets the
+// 'finished_probability_grid' to be used for loop closing once the map no
+// longer changes.
 class Submap {
  public:
   Submap(const transform::Rigid3d& local_submap_pose)
       : local_pose_(local_submap_pose) {}
   virtual ~Submap() {}
 
-  virtual proto::Submap ToProto(bool include_grid_data) const = 0;
+  virtual void ToProto(proto::Submap* proto,
+                       bool include_probability_grid_data) const = 0;
   virtual void UpdateFromProto(const proto::Submap& proto) = 0;
 
   // Fills data into the 'response'.
@@ -79,15 +80,14 @@ class Submap {
     num_range_data_ = num_range_data;
   }
 
-  bool insertion_finished() const { return insertion_finished_; }
-  void set_insertion_finished(bool insertion_finished) {
-    insertion_finished_ = insertion_finished;
-  }
+  // Whether the submap is finished or not.
+  bool finished() const { return finished_; }
+  void set_finished(bool finished) { finished_ = finished; }
 
  private:
   const transform::Rigid3d local_pose_;
   int num_range_data_ = 0;
-  bool insertion_finished_ = false;
+  bool finished_ = false;
 };
 
 }  // namespace mapping

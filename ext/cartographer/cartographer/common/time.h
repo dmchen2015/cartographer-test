@@ -49,7 +49,6 @@ Duration FromMilliseconds(int64 milliseconds);
 
 // Returns the given duration in seconds.
 double ToSeconds(Duration duration);
-double ToSeconds(std::chrono::steady_clock::duration duration);
 
 // Creates a time from a Universal Time Scale.
 Time FromUniversal(int64 ticks);
@@ -59,9 +58,6 @@ int64 ToUniversal(Time time);
 
 // For logging and unit tests, outputs the timestamp integer.
 std::ostream& operator<<(std::ostream& os, Time time);
-
-// CPU time consumed by the thread so far, in seconds.
-double GetThreadCpuTimeSeconds();
 
 }  // namespace common
 }  // namespace cartographer

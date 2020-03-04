@@ -41,7 +41,6 @@ class SubmapCoverageGrid2D {
   }
 
   const std::map<CellId, StoredType>& cells() const { return cells_; }
-  double resolution() const { return resolution_; }
 
  private:
   Eigen::Vector2d offset_;
@@ -61,7 +60,7 @@ std::set<SubmapId> AddSubmapsToSubmapCoverageGrid2D(
   for (const auto& submap : submap_data) {
     auto freshness = submap_freshness.find(submap.id);
     if (freshness == submap_freshness.end()) continue;
-    if (!submap.data.submap->insertion_finished()) continue;
+    if (!submap.data.submap->finished()) continue;
     all_submap_ids.insert(submap.id);
     const Grid2D& grid =
         *std::static_pointer_cast<const Submap2D>(submap.data.submap)->grid();
@@ -199,12 +198,12 @@ void OverlappingSubmapsTrimmer2D::Trim(Trimmable* pose_graph) {
                              pose_graph->GetConstraints());
   const std::set<SubmapId> all_submap_ids = AddSubmapsToSubmapCoverageGrid2D(
       submap_freshness, submap_data, &coverage_grid);
-  const std::vector<SubmapId> submap_ids_to_remove = FindSubmapIdsToTrim(
-      coverage_grid, all_submap_ids, fresh_submaps_count_,
-      min_covered_area_ / common::Pow2(coverage_grid.resolution()));
+  const std::vector<SubmapId> submap_ids_to_remove =
+      FindSubmapIdsToTrim(coverage_grid, all_submap_ids, fresh_submaps_count_,
+                          min_covered_cells_count_);
   current_submap_count_ = submap_data.size() - submap_ids_to_remove.size();
   for (const SubmapId& id : submap_ids_to_remove) {
-    pose_graph->TrimSubmap(id);
+    pose_graph->MarkSubmapAsTrimmed(id);
   }
 }
 

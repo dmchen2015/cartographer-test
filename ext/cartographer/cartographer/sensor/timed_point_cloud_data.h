@@ -27,12 +27,12 @@ namespace sensor {
 struct TimedPointCloudData {
   common::Time time;
   Eigen::Vector3f origin;
-  TimedPointCloud ranges;
+  sensor::TimedPointCloud ranges;
 };
 
 struct TimedPointCloudOriginData {
   struct RangeMeasurement {
-    TimedRangefinderPoint point_time;
+    Eigen::Vector4f point_time;
     size_t origin_index;
   };
   common::Time time;

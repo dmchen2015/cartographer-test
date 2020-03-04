@@ -15,7 +15,6 @@
  */
 
 #include "cartographer/mapping/internal/2d/local_slam_result_2d.h"
-
 #include "cartographer/mapping/internal/2d/pose_graph_2d.h"
 
 namespace cartographer {
@@ -24,7 +23,7 @@ namespace mapping {
 void LocalSlamResult2D::AddToTrajectoryBuilder(
     TrajectoryBuilderInterface* const trajectory_builder) {
   trajectory_builder->AddLocalSlamResultData(
-      absl::make_unique<LocalSlamResult2D>(*this));
+      common::make_unique<LocalSlamResult2D>(*this));
 }
 
 void LocalSlamResult2D::AddToPoseGraph(int trajectory_id,
@@ -34,16 +33,7 @@ void LocalSlamResult2D::AddToPoseGraph(int trajectory_id,
   CHECK(local_slam_result_data_.submaps(0).has_submap_2d());
   std::vector<std::shared_ptr<const mapping::Submap2D>> submaps;
   for (const auto& submap_proto : local_slam_result_data_.submaps()) {
-    auto submap_ptr = submap_controller_->UpdateSubmap(submap_proto);
-    if (submap_ptr) {
-      submaps.push_back(submap_ptr);
-    } else {
-      LOG(INFO) << "Ignoring submap";
-    }
-  }
-  if (submaps.size() == 0) {
-    LOG(INFO) << "Ignoring node";
-    return;
+    submaps.push_back(submap_controller_->UpdateSubmap(submap_proto));
   }
   static_cast<PoseGraph2D*>(pose_graph)
       ->AddNode(std::make_shared<const mapping::TrajectoryNode::Data>(

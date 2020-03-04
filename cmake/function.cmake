@@ -82,7 +82,7 @@ function(build_proto_files INPUT_DIR OUTPUT_DIR RESULT)
 				COMMAND ${PROJECT_SOURCE_DIR}/bin/protoc
 				ARGS --cpp_out ${OUTPUT_DIR} -I ${INPUT_DIR} ${ABS_FIL}
 				DEPENDS ${ABS_FIL}
-				COMMENT "Running C++ protocol buffer compiler(${PROJECT_SOURCE_DIR}/bin/protoc) on ${ABS_FIL}"
+				COMMENT "Running C++ protocol buffer compiler(bin/protoc) on ${REL_FIL}"
 				VERBATIM
 		)
 		list(APPEND ALL_PROTO_BUILD ${ABS_FIL_SRC})

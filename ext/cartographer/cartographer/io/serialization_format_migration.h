@@ -18,8 +18,6 @@
 #define CARTOGRAPHER_IO_SERIALIZATION_FORMAT_MIGRATION_H_
 
 #include "cartographer/io/proto_stream_interface.h"
-#include "cartographer/mapping/id.h"
-#include "cartographer/mapping/proto/serialization.pb.h"
 
 namespace cartographer {
 namespace io {
@@ -30,15 +28,7 @@ namespace io {
 // SerializedData*).
 void MigrateStreamFormatToVersion1(
     cartographer::io::ProtoStreamReaderInterface* const input,
-    cartographer::io::ProtoStreamWriterInterface* const output,
-    bool migrate_grid_format);
-
-mapping::MapById<mapping::SubmapId, mapping::proto::Submap>
-MigrateSubmapFormatVersion1ToVersion2(
-    const mapping::MapById<mapping::SubmapId, mapping::proto::Submap>&
-        submap_id_to_submaps,
-    mapping::MapById<mapping::NodeId, mapping::proto::Node>& node_id_to_nodes,
-    const mapping::proto::PoseGraph& pose_graph_proto);
+    cartographer::io::ProtoStreamWriterInterface* const output);
 
 }  // namespace io
 }  // namespace cartographer

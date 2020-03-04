@@ -19,10 +19,10 @@
 
 #include <functional>
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
 #include "cartographer/sensor/collator_interface.h"
 #include "cartographer/sensor/data.h"
 #include "cartographer/sensor/internal/ordered_multi_queue.h"
@@ -37,10 +37,9 @@ class Collator : public CollatorInterface {
   Collator(const Collator&) = delete;
   Collator& operator=(const Collator&) = delete;
 
-  void AddTrajectory(
-      int trajectory_id,
-      const absl::flat_hash_set<std::string>& expected_sensor_ids,
-      const Callback& callback) override;
+  void AddTrajectory(int trajectory_id,
+                     const std::unordered_set<std::string>& expected_sensor_ids,
+                     const Callback& callback) override;
 
   void FinishTrajectory(int trajectory_id) override;
 
@@ -48,14 +47,14 @@ class Collator : public CollatorInterface {
 
   void Flush() override;
 
-  absl::optional<int> GetBlockingTrajectoryId() const override;
+  common::optional<int> GetBlockingTrajectoryId() const override;
 
  private:
   // Queue keys are a pair of trajectory ID and sensor identifier.
   OrderedMultiQueue queue_;
 
   // Map of trajectory ID to all associated QueueKeys.
-  absl::flat_hash_map<int, std::vector<QueueKey>> queue_keys_;
+  std::unordered_map<int, std::vector<QueueKey>> queue_keys_;
 };
 
 }  // namespace sensor
